@@ -15,45 +15,39 @@ const { type } = require("os");
 // Write code to use inquirer to gather information about the development team members,
 // and to create objects for each team member (using the correct classes as blueprints!)
 const employees = [];
-const empRole = ["Manager", "Engineer", "Intern"];
+const empRoles = ["Manager", "Engineer", "Intern"];
 
 function getEmployeeInfo(){
   return inquirer.prompt([
     {
       type: "input",
       name: "name",
-      message: "what is the Team Member's name"
+      message: "what is the Team Member's name: "
     },{
       type: "input",
       name: "id",
-      message: "what is the Team Member's id"
+      message: "what is the Team Member's id: "
     },{
       type: "input",
       name: "email",
-      message: "what is the Team Member's email"
-    },{
-      type: "list",
-      name: "role",
-      message: "what role is the Team Member",
-      choices: empRole
+      message: "what is the Team Member's email: "
     }
   ])
 }
 
-async function createEmployeeObj(){
+async function createEmployeeObj(role){
   //get basic employee information
   let inputs = await getEmployeeInfo();
-console.log(inputs);    
+
   //get role specific info and create object
-  switch (inputs.role){
+  switch (role){
     case "Manager":
       await inquirer.prompt({
         type: "input",
         name: "officeNumber",
-        message: "What is the managers office number"
+        message: "What is the managers office number: "
       }).then(function(data){
         employee = new Manager(inputs.name, inputs.id, inputs.email, data.officeNumber);
-console.log("line 56 " + JSON.stringify(employee));
       });
     return employee;
 
@@ -61,10 +55,9 @@ console.log("line 56 " + JSON.stringify(employee));
       await inquirer.prompt({
         type: "input",
         name: "github",
-        message: "What is the engineers github username"
+        message: "What is the engineers github username: "
       }).then(function(data){
         employee = new Engineer(inputs.name, inputs.id, inputs.email, data.github);
-console.log("line 67 " + JSON.stringify(employee));
       });
       return employee;
 
@@ -72,21 +65,49 @@ console.log("line 67 " + JSON.stringify(employee));
       await inquirer.prompt({
         type: "input",
         name: "school",
-        message: "What school does the intern attend"
+        message: "What school does the intern attend: "
       }).then(function(data){
         employee = new Intern(inputs.name, inputs.id, inputs.email, data.school);
-console.log("line 78 " + JSON.stringify(employee));
       });
     return employee;
   }
 }
 
 async function init(){
-  for (let i = 0; i < 3; i++) {
-    let employee = await createEmployeeObj();
-console.log("line 84 " + JSON.stringify(employee));
+  let moreEmps = true;
+
+  //If there is no employees in array, get manager
+  if(employees.length < 1){
+    console.log("Create your team,")
+    console.log("Enter the managers info");
+    let employee = await createEmployeeObj("Manager");
     employees.push(employee);
-console.log(JSON.stringify(employees));
+  }
+
+  while(moreEmps){
+    //prompt for and add the rest of the team
+    await inquirer.prompt({
+      type: "confirm",
+      name: "choice",
+      message: "Do you have more team members to enter?"
+    }).then(async function(data) {
+      //If there are more team members to add, create the employee object, push into array
+      if(data.choice){
+        await inquirer.prompt({
+          type: "list",
+          name: "role",
+          message: "what role is the Team Member: ",
+          choices: empRoles
+        }).then(async function(data) {
+          let employee = await createEmployeeObj(data.role);
+          employees.push(employee);
+        })
+       //if there are no more ream members, call render function  
+      }else{
+        moreEmps = false;
+        render(employees);
+      }
+    })
   }
 }
 
