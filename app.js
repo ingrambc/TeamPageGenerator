@@ -9,10 +9,91 @@ const OUTPUT_DIR = path.resolve(__dirname, "output");
 const outputPath = path.join(OUTPUT_DIR, "team.html");
 
 const render = require("./lib/htmlRenderer");
+const { type } = require("os");
 
 
 // Write code to use inquirer to gather information about the development team members,
 // and to create objects for each team member (using the correct classes as blueprints!)
+const employees = [];
+const empRole = ["Manager", "Engineer", "Intern"];
+
+function getEmployeeInfo(){
+  return inquirer.prompt([
+    {
+      type: "input",
+      name: "name",
+      message: "what is the Team Member's name"
+    },{
+      type: "input",
+      name: "id",
+      message: "what is the Team Member's id"
+    },{
+      type: "input",
+      name: "email",
+      message: "what is the Team Member's email"
+    },{
+      type: "list",
+      name: "role",
+      message: "what role is the Team Member",
+      choices: empRole
+    }
+  ])
+}
+
+async function createEmployeeObj(){
+  //get basic employee information
+  let inputs = await getEmployeeInfo();
+console.log(inputs);    
+  //get role specific info and create object
+  switch (inputs.role){
+    case "Manager":
+      await inquirer.prompt({
+        type: "input",
+        name: "officeNumber",
+        message: "What is the managers office number"
+      }).then(function(data){
+        employee = new Manager(inputs.name, inputs.id, inputs.email, data.officeNumber);
+console.log("line 56 " + JSON.stringify(employee));
+      });
+    return employee;
+
+    case "Engineer":
+      await inquirer.prompt({
+        type: "input",
+        name: "github",
+        message: "What is the engineers github username"
+      }).then(function(data){
+        employee = new Engineer(inputs.name, inputs.id, inputs.email, data.github);
+console.log("line 67 " + JSON.stringify(employee));
+      });
+      return employee;
+
+    case "Intern":
+      await inquirer.prompt({
+        type: "input",
+        name: "school",
+        message: "What school does the intern attend"
+      }).then(function(data){
+        employee = new Intern(inputs.name, inputs.id, inputs.email, data.school);
+console.log("line 78 " + JSON.stringify(employee));
+      });
+    return employee;
+  }
+}
+
+async function init(){
+  for (let i = 0; i < 3; i++) {
+    let employee = await createEmployeeObj();
+console.log("line 84 " + JSON.stringify(employee));
+    employees.push(employee);
+console.log(JSON.stringify(employees));
+  }
+}
+
+
+init();
+  
+
 
 // After the user has input all employees desired, call the `render` function (required
 // above) and pass in an array containing all employee objects; the `render` function will
