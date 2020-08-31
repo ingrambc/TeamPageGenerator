@@ -4,7 +4,9 @@ const Intern = require("./lib/Intern");
 const inquirer = require("inquirer");
 const path = require("path");
 const fs = require("fs");
+const util = require('util');
 
+const writeFileAsync = util.promisify(fs.writeFile);
 const OUTPUT_DIR = path.resolve(__dirname, "output");
 const outputPath = path.join(OUTPUT_DIR, "team.html");
 
@@ -12,10 +14,9 @@ const render = require("./lib/htmlRenderer");
 const { type } = require("os");
 
 
-// Write code to use inquirer to gather information about the development team members,
-// and to create objects for each team member (using the correct classes as blueprints!)
+// gather information and create employee objects
 const employees = [];
-const empRoles = ["Manager", "Engineer", "Intern"];
+const empRoles = ["Engineer", "Intern"];
 
 function getEmployeeInfo(){
   return inquirer.prompt([
@@ -102,14 +103,30 @@ async function init(){
           let employee = await createEmployeeObj(data.role);
           employees.push(employee);
         })
-       //if there are no more ream members, call render function  
+       //if there are no more ream members, call render function and create file  
       }else{
+        //set while loop variable to exit
         moreEmps = false;
-        render(employees);
-      }
-    })
-  }
-}
+        //check if directory exists, if not add it
+        try{
+          if(!fs.existsSync(OUTPUT_DIR))
+            fs.mkdirSync("./output")
+        }catch(err){
+            console.log("fs.exists err" + err)
+        }
+        //create and write file
+        try{
+          const teamHtml = render(employees);
+          await writeFileAsync(outputPath, teamHtml);
+          console.log("write was succesfull");
+
+        }catch(err){
+          console.log(err);
+        }
+      } //end if/else
+    }) //end then
+  }//end while
+} //end func
 
 
 init();
